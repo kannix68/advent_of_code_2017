@@ -1,5 +1,5 @@
-# AoC 2017 - day 1 pt 2 - perl implementation
-# Solution by rhe 2017-12-01
+# AoC 2017 - day 2 pt 1 - perl implementation
+# Solution by rhe 2017-12-02
 # Note: input data is expected to be in file "day<daynum>.in"
 
 use v5.8.4;
@@ -7,12 +7,16 @@ use strict;
 use warnings;
 use English;
 
+use List::Util qw(min max);
+
+my $testin = <<EOL;
+5 1 9 5
+7 5 3
+2 4 6 8
+EOL
+
 my $testcases = [
- ['1212', 6],
- ['1221', 0],
- ['123425', 4],
- ['123123', 12],
- ['12131415', 4],
+ [$testin, 18],
 ];
 
 # get input data file name
@@ -34,35 +38,55 @@ sub read_file_line($) {
   return $line;
 }
 
+# read all lines of file into array-of-strings
+sub read_file_lines($) {
+  my $infile = shift();
+  my @lines = ();
+  open(my $fh, $infile) or die "Could not open $infile: $!";
+  while(my $line = <$fh>) {
+    chomp($line);
+    push @lines, $line;
+  }
+  close($fh);
+  return \@lines;
+}
+
+# read all lines of file into array-of-strings
+sub read_file($) {
+  my $infile = shift();
+  my $lines = "";
+  open(my $fh, $infile) or die "Could not open $infile: $!";
+  while(my $line = <$fh>) {
+    $lines .= $line;
+  }
+  close($fh);
+  return $lines;
+}
+
+
 # solution function
 # index based lookup of character to compare, with modulo-overflow-handling
 sub solve($) {
   my $instr = shift();
-  my @chars = split(//, $instr);
-  my $alen = scalar(@chars);
-  my $sum = 0;
-  my $jump = $alen/2; # part 1: =1
-  for(my $i=0; $i<$alen; $i++) {
-    my $char = $chars[$i];
-    my $cmpchar = $chars[($i+$jump) % $alen];
-    if ($char eq $cmpchar) {
-      $sum += $char;
-    }
+  my @lines = split(/\n/, $instr);
+  my $chksum = 0;
+  foreach my $line (@lines) {
+    my @tokens = split /\s+/, $line;
+    $chksum += (max(@tokens)-min(@tokens));
   }
-  return $sum;
+  return $chksum;
 }
 
 ## MAIN
 
 # test cases
 foreach my $a (@$testcases) {
-  #-print "test: ".$a->[0].", ".$a->[1]."\n";
   my $result = solve($a->[0]);
   print "test input=".$a->[0].", solution=$result, expected=".$a->[1]."\n";
   die "ABORT: test failed!" if $result != $a->[1];
 }
 
 # individual input
-my $input = read_file_line(get_infile_name());
+my $input = read_file(get_infile_name());
 #-print "input=$input\n";
 print "data solution=".solve($input)."\n";
