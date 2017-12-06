@@ -1,4 +1,4 @@
-# AoC 2017 - day 5 pt 2 - perl implementation
+# AoC 2017 - day 6 pt 1 - perl implementation
 # Solution by rhe 2017-12-06
 # Note: input data is expected to be in file "day<daynum>.in"
 
@@ -7,16 +7,8 @@ use strict;
 use warnings;
 use English;
 
-my $teststr = <<EOL;
-0
-3
-0
-1
--3
-EOL
-
 my $testcases = [
- [$teststr, 10],
+ ["0 2 7 0", 5],
 ];
 
 ## LIBRARY functions
@@ -53,6 +45,21 @@ sub read_file_lines($) {
   return \@lines;
 }
 
+# find index of maximum array value
+sub find_maxval_idx($) {
+  my $aref = shift(); 
+  my $maxidx;
+  my $maxval = undef;
+  for(my $i=0; $i<scalar(@$aref); $i++){
+    my $v = $aref->[$i];
+    if (not defined($maxval) or $maxval < $v) {
+      $maxidx = $i;
+      $maxval = $v;
+    }
+  }
+  return $maxidx;
+}
+
 # read all lines of file into array-of-strings
 sub read_file($) {
   my $infile = shift();
@@ -68,25 +75,41 @@ sub read_file($) {
 ## SOLUTION domain
 
 # solution function
+sub recombine($){
+  my $cells = shift();
+  my $stp = 0;
+  my $combi = join(',', @$cells);
+  my $ptr = find_maxval_idx($cells);
+  my $blocks = $cells->[$ptr];
+  #-print "step=$stp, ptr=$ptr, blocks=$blocks; combi=$combi\n";
+  $cells->[$ptr] = 0;
+  while ($blocks > 0) {
+    $stp++;
+    $ptr = ($ptr+1) % scalar(@$cells);
+    $cells->[$ptr] += 1;
+    $blocks--;
+    $combi = join(',', @$cells);
+    #-print "step=$stp, ptr=$ptr, blocks=$blocks; combi=$combi\n";
+  }
+  return $cells;
+}
 
 sub solve($) {
   my $instr = shift();
-  my @cells = split(/\s+/s, $instr);
-  #-print join(',', @cells) . "\n";
-  my $ptr = 0;
-  my $steps = 0;
-  while (($ptr >= 0) and ($ptr < scalar(@cells))) {
-    $steps++;
-    my $ptr2 = $cells[$ptr];
-    if ($ptr2 >= 3) {
-      $cells[$ptr] -= 1;
-    } else {
-      $cells[$ptr] += 1;
-    }
-    $ptr = $ptr + $ptr2;
-    #-print "new step=#$steps, jumped $ptr2: at $ptr, " . join(',', @cells) . "\n";
-  }
-  return $steps;
+  my $cells = [split(/\s+/s, $instr)];
+  my $combi;
+  my %seen = ();
+  my $step = 0;
+  $combi = join(',', @$cells);
+  do {
+    $step++;
+    $seen{$combi} = 1;
+    print "step=$step, combi=$combi\n";
+    $cells = recombine($cells);
+    $combi = join(',', @$cells);
+  } while( not exists($seen{$combi}) );
+  print "step=$step, final combi=$combi\n";
+  return $step;
 }
 
 ## MAIN

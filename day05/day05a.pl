@@ -1,5 +1,5 @@
 # AoC 2017 - day 5 pt 1 - perl implementation
-# Solution by rhe 2017-12-05
+# Solution by rhe 2017-12-06
 # Note: input data is expected to be in file "day<daynum>.in"
 
 use v5.8.4;
