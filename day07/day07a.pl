@@ -1,5 +1,5 @@
-# AoC 2017 - day 6 pt 1 - perl implementation
-# Solution by rhe 2017-12-06
+# AoC 2017 - day 7 pt 1 - perl implementation
+# Solution by rhe 2017-12-07
 # Note: input data is expected to be in file "day<daynum>.in"
 
 use v5.8.4;
@@ -7,8 +7,24 @@ use strict;
 use warnings;
 use English;
 
+my $teststr = <<EOL;
+pbga (66)
+xhth (57)
+ebii (61)
+havc (66)
+ktlj (57)
+fwft (72) -> ktlj, cntj, xhth
+qoyq (66)
+padx (45) -> pbga, havc, qoyq
+tknk (41) -> ugml, padx, fwft
+jptl (61)
+ugml (68) -> gyxo, ebii, jptl
+gyxo (61)
+cntj (57)
+EOL
+
 my $testcases = [
- ["0 2 7 0", 5],
+ [$teststr, "tknk"],
 ];
 
 ## LIBRARY functions
@@ -45,6 +61,13 @@ sub read_file_lines($) {
   return \@lines;
 }
 
+# read all lines of file into array-of-strings
+sub read_str_lines($) {
+  my $instr = shift();
+  my @lines = split /\n/, $instr;
+  return \@lines;
+}
+
 # find index of maximum array value
 sub find_maxval_idx($) {
   my $aref = shift(); 
@@ -74,43 +97,35 @@ sub read_file($) {
 
 ## SOLUTION domain
 
-# recombine cells
-sub recombine($){
-  my $cells = shift();
-  my $stp = 0;
-  my $combi = join(',', @$cells);
-  my $ptr = find_maxval_idx($cells);
-  my $blocks = $cells->[$ptr];
-  #-print "step=$stp, ptr=$ptr, blocks=$blocks; combi=$combi\n";
-  $cells->[$ptr] = 0;
-  while ($blocks > 0) {
-    $stp++;
-    $ptr = ($ptr+1) % scalar(@$cells);
-    $cells->[$ptr] += 1;
-    $blocks--;
-    $combi = join(',', @$cells);
-    #-print "step=$stp, ptr=$ptr, blocks=$blocks; combi=$combi\n";
-  }
-  return $cells;
-}
-
 # solution function
 sub solve($) {
   my $instr = shift();
-  my $cells = [split(/\s+/s, $instr)];
-  my $combi;
-  my %seen = ();
-  my $step = 0;
-  $combi = join(',', @$cells);
-  do {
-    $step++;
-    $seen{$combi} = 1;
-    print "step=$step, combi=$combi\n";
-    $cells = recombine($cells);
-    $combi = join(',', @$cells);
-  } while( not exists($seen{$combi}) );
-  print "step=$step, final combi=$combi\n";
-  return $step;
+  my $lines = read_str_lines($instr);
+  #print join("+", @$lines)."\n";
+  my %keys;
+  my %values;
+  foreach my $line (@$lines) {
+    my ($k, $v) = split(/ -> /, $line);
+    #print "k=$k; v=$v\n";
+    $k =~ m/^(\w+) \(\d+\)$/;
+    my $key = $1;
+    $keys{$key} += 1;
+    #print "key=$key\n";
+    if (defined $v) {
+      my @vals = split /, /, $v;
+      foreach my $val (@vals) {
+        $values{$val} +=1;
+      }
+    }
+  }
+  foreach my $v (keys %values) {
+    delete $keys{$v};
+  }
+  foreach my $k (keys %keys) {
+    print "left key=$k\n";
+  }
+  my @ks = keys(%keys);
+  return $ks[0];
 }
 
 ## MAIN
@@ -118,8 +133,8 @@ sub solve($) {
 # test cases
 foreach my $a (@$testcases) {
   my $result = solve($a->[0]);
-  print "test input=".$a->[0].", solution=$result, expected=".$a->[1]."\n";
-  die "ABORT: test failed!" if $result != $a->[1];
+  print "test input=".$a->[0].", solution='$result', expected='".$a->[1]."'\n";
+  die "ABORT: test failed!" if $result ne $a->[1];
 }
 
 # individual input

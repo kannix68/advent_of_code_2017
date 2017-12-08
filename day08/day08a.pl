@@ -1,5 +1,5 @@
-# AoC 2017 - day 6 pt 1 - perl implementation
-# Solution by rhe 2017-12-06
+# AoC 2017 - day 8 pt 1 - perl implementation
+# Solution by rhe 2017-12-08
 # Note: input data is expected to be in file "day<daynum>.in"
 
 use v5.8.4;
@@ -7,8 +7,21 @@ use strict;
 use warnings;
 use English;
 
+use Data::Dumper;
+use List::Util qw(max);
+
+$Data::Dumper::Terse = 1;  # don't output names where feasible
+$Data::Dumper::Indent = 0;  # turn off all pretty print
+
+my $teststr = <<EOL;
+b inc 5 if a > 1
+a inc 1 if b < 5
+c dec -10 if a >= 1
+c inc -20 if c == 10
+EOL
+
 my $testcases = [
- ["0 2 7 0", 5],
+ [$teststr, 1],
 ];
 
 ## LIBRARY functions
@@ -45,6 +58,13 @@ sub read_file_lines($) {
   return \@lines;
 }
 
+# read all lines of file into array-of-strings
+sub read_str_lines($) {
+  my $instr = shift();
+  my @lines = split /\n/, $instr;
+  return \@lines;
+}
+
 # find index of maximum array value
 sub find_maxval_idx($) {
   my $aref = shift(); 
@@ -74,43 +94,42 @@ sub read_file($) {
 
 ## SOLUTION domain
 
-# recombine cells
-sub recombine($){
-  my $cells = shift();
-  my $stp = 0;
-  my $combi = join(',', @$cells);
-  my $ptr = find_maxval_idx($cells);
-  my $blocks = $cells->[$ptr];
-  #-print "step=$stp, ptr=$ptr, blocks=$blocks; combi=$combi\n";
-  $cells->[$ptr] = 0;
-  while ($blocks > 0) {
-    $stp++;
-    $ptr = ($ptr+1) % scalar(@$cells);
-    $cells->[$ptr] += 1;
-    $blocks--;
-    $combi = join(',', @$cells);
-    #-print "step=$stp, ptr=$ptr, blocks=$blocks; combi=$combi\n";
-  }
-  return $cells;
-}
-
 # solution function
 sub solve($) {
   my $instr = shift();
-  my $cells = [split(/\s+/s, $instr)];
-  my $combi;
-  my %seen = ();
-  my $step = 0;
-  $combi = join(',', @$cells);
-  do {
-    $step++;
-    $seen{$combi} = 1;
-    print "step=$step, combi=$combi\n";
-    $cells = recombine($cells);
-    $combi = join(',', @$cells);
-  } while( not exists($seen{$combi}) );
-  print "step=$step, final combi=$combi\n";
-  return $step;
+  my $lines = read_str_lines($instr);
+  my %regs;
+  foreach my $line (@$lines) {
+    print "line=$line\n";
+    #c dec -10 if a >= 1
+    $line =~ m/^(\w+) (inc|dec) ([\-0-9]+) if (\w+) ([<>=!]+) ([\-0-9]+)$/;
+    my ($reg1, $cmd, $inc, $reg2, $op, $cmp) = ($1, $2, $3, $4, $5, $6);
+    if (not exists($regs{$reg1})) {
+      $regs{$reg1} = 0;
+    }
+    if (not exists($regs{$reg2})) {
+      $regs{$reg2} = 0;
+    }
+    if (
+      ($op eq '==' and $regs{$reg2} == $cmp)
+      or ($op eq '!=' and $regs{$reg2} != $cmp)
+      or ($op eq '<' and $regs{$reg2} < $cmp)
+      or ($op eq '>' and $regs{$reg2} > $cmp)
+      or ($op eq '<=' and $regs{$reg2} <= $cmp)
+      or ($op eq '>=' and $regs{$reg2} >= $cmp)
+    ){
+      print "do! " . Dumper(\%regs) . "\n";
+      my $add = $inc;
+      if ($cmd eq 'dec') {
+        $add *= -1;
+      }
+      print "$reg1 += $add\n";
+      $regs{$reg1} += $add;
+      print "regs=" . Dumper(\%regs) . "\n";
+    }
+  }
+  print "final-regs=" . Dumper(\%regs) . "\n";
+  return max(values(%regs));
 }
 
 ## MAIN

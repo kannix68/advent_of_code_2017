@@ -1,4 +1,4 @@
-# AoC 2017 - day 6 pt 1 - perl implementation
+# AoC 2017 - day 6 pt 2 - perl implementation
 # Solution by rhe 2017-12-06
 # Note: input data is expected to be in file "day<daynum>.in"
 
@@ -74,7 +74,7 @@ sub read_file($) {
 
 ## SOLUTION domain
 
-# solution function
+# recombine cells
 sub recombine($){
   my $cells = shift();
   my $stp = 0;
@@ -94,6 +94,7 @@ sub recombine($){
   return $cells;
 }
 
+# solution function
 sub solve($) {
   my $instr = shift();
   my $cells = [split(/\s+/s, $instr)];
