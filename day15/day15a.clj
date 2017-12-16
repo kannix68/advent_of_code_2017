@@ -15,11 +15,6 @@
 
 ;** problem solution
 
-;** test data (as a var(iable))
-(def teststr "eedadn
-eandsr
-enarar")
-
 ; LIB
 (defn explode-lines [str]
   "explode a (multiline) string into list-of-lines,
